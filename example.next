@@ -1,8 +1,10 @@
 import std
-1 * 2 + 4 * 3
+
 @entry
 fn main {
     const add = (x, y) => x + y
     const power = (x, y) => x ** y
     std.println("Hello World!")
 }
+
+export main

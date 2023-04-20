@@ -28,7 +28,7 @@ impl Lexer {
         input: Vec<char>,
         keywords: Vec<String>,
         operators: Vec<String>,
-        specials: Vec<String>
+        specials: Vec<String>,
     ) -> Self {
         Self {
             keywords,
@@ -40,10 +40,26 @@ impl Lexer {
             src: "".to_string(),
             position: 0,
             read_position: 0,
-            ch: char::from(0)
+            ch: char::from(0),
         }
     }
 
+    pub fn save_state(&mut self) -> (u32, u32, usize, usize, char) {
+        return (
+            self.line,
+            self.char_pos,
+            self.position,
+            self.read_position,
+            self.ch,
+        );
+    }
+    pub fn load_state(&mut self, data: (u32, u32, usize, usize, char)) {
+        self.line = data.0;
+        self.char_pos = data.1;
+        self.position = data.2;
+        self.read_position = data.3;
+        self.ch = data.4;
+    }
     pub fn read_char(&mut self) {
         if self.read_position >= self.input.len() {
             self.ch = char::from(0);
@@ -64,7 +80,7 @@ impl Lexer {
             char::from(0)
         } else {
             self.input[self.read_position]
-        }
+        };
     }
 
     pub fn skip_whitespaces(&mut self) {
@@ -132,63 +148,72 @@ impl Lexer {
             let id = read_identifier(self);
 
             if self.keywords.contains(&id) {
-                token = Token::Keyword(id.clone(), TokenData {
-                    line,
-                    char,
-                    file: self.src.clone(),
-                    raw: id.clone(),
-                })
+                token = Token::Keyword(
+                    id.clone(),
+                    TokenData {
+                        line,
+                        char,
+                        file: self.src.clone(),
+                        raw: id.clone(),
+                    },
+                )
+            } else {
+                token = Token::Id(
+                    id.clone(),
+                    TokenData {
+                        line,
+                        char,
+                        file: self.src.clone(),
+                        raw: id.clone(),
+                    },
+                )
             }
-            else {
-                token = Token::Id(id.clone(), TokenData {
-                    line,
-                    char,
-                    file: self.src.clone(),
-                    raw: id.clone(),
-                })
-            }
-        }
-        else if is_digit(self.ch) {
+        } else if is_digit(self.ch) {
             let mut num = read_number(self);
 
             if self.ch == '.' {
                 self.read_char();
                 num += &*(".".to_owned() + &*read_number(self));
 
-                token = Token::Float(num.parse::<f64>().unwrap(), TokenData {
-                    line,
-                    char,
-                    file: self.src.clone(),
-                    raw: num.clone(),
-                });
+                token = Token::Float(
+                    num.parse::<f64>().unwrap(),
+                    TokenData {
+                        line,
+                        char,
+                        file: self.src.clone(),
+                        raw: num.clone(),
+                    },
+                );
+            } else {
+                token = Token::Integer(
+                    num.parse::<i64>().unwrap(),
+                    TokenData {
+                        line,
+                        char,
+                        file: self.src.clone(),
+                        raw: num.clone(),
+                    },
+                );
             }
-            else {
-                token = Token::Integer(num.parse::<i64>().unwrap(), TokenData {
-                    line,
-                    char,
-                    file: self.src.clone(),
-                    raw: num.clone(),
-                });
-            }
-        }
-        else if self.ch == char::from(0) {
+        } else if self.ch == char::from(0) {
             token = Token::EOF;
-        }
-        else if self.ch == '"' {
+        } else if self.ch == '"' {
             self.read_char();
 
             let str = read_string(self);
 
-            token = Token::String(str.clone().trim_matches('"').to_string(), TokenData {
-                line,
-                char,
-                file: self.src.clone(),
-                raw: str.clone(),
-            });
+            token = Token::String(
+                str.clone().trim_matches('"').to_string(),
+                TokenData {
+                    line,
+                    char,
+                    file: self.src.clone(),
+                    raw: str.clone(),
+                },
+            );
 
             self.read_char();
-        }
-        else {
+        } else {
             let mut str = String::from(self.ch);
 
             loop {
@@ -196,44 +221,54 @@ impl Lexer {
 
                 let mut place_tok = || {
                     if self.operators.contains(&str) {
-                        token = Token::Operator(str.clone(), TokenData {
-                            line,
-                            char,
-                            file: self.src.clone(),
-                            raw: str.clone(),
-                        });
-                    }
-                    else if self.specials.contains(&str) {
-                        token = Token::Special(str.clone(), TokenData {
-                            line,
-                            char,
-                            file: self.src.clone(),
-                            raw: str.clone(),
-                        });
-                    }
-                    else {
-                        token = Token::Unknown(str.clone(), TokenData {
-                            line,
-                            char,
-                            file: self.src.clone(),
-                            raw: str.clone(),
-                        });
+                        token = Token::Operator(
+                            str.clone(),
+                            TokenData {
+                                line,
+                                char,
+                                file: self.src.clone(),
+                                raw: str.clone(),
+                            },
+                        );
+                    } else if self.specials.contains(&str) {
+                        token = Token::Special(
+                            str.clone(),
+                            TokenData {
+                                line,
+                                char,
+                                file: self.src.clone(),
+                                raw: str.clone(),
+                            },
+                        );
+                    } else {
+                        token = Token::Unknown(
+                            str.clone(),
+                            TokenData {
+                                line,
+                                char,
+                                file: self.src.clone(),
+                                raw: str.clone(),
+                            },
+                        );
                     }
                 };
 
-                if !is_digit(self.ch) && !is_letter(self.ch) && self.ch != '_' && self.ch != char::from(0) {
+                if !is_digit(self.ch)
+                    && !is_letter(self.ch)
+                    && self.ch != '_'
+                    && self.ch != char::from(0)
+                {
                     let chas = (str.clone() + &*String::from(self.ch));
 
                     if self.operators.iter().any(|op| op.starts_with(&chas))
-                        || self.specials.iter().any(|op| op.starts_with(&chas)){
+                        || self.specials.iter().any(|op| op.starts_with(&chas))
+                    {
                         str = chas;
-                    }
-                    else {
+                    } else {
                         place_tok();
                         break;
                     }
-                }
-                else {
+                } else {
                     place_tok();
                     break;
                 }
