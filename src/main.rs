@@ -1,3 +1,6 @@
+use crate::compiler::functions::FunctionTable;
+use crate::compiler::next_to_bytecode_compiler::NextToByteCodeCompiler;
+use crate::compiler::types::TypeTable;
 use crate::lexer::token::Token;
 use crate::lexer::Lexer;
 use crate::parser::node::Expression;
@@ -6,6 +9,8 @@ use std::collections::HashMap;
 use std::io::Write;
 use std::{env, fs, io};
 
+mod compiler;
+mod core;
 mod lexer;
 mod parser;
 
@@ -130,8 +135,21 @@ fn main() {
 
         let program = parser.parse();
 
-        for st in program {
+        for st in &program {
             println!("{}", st);
+        }
+
+        let mut compiler = NextToByteCodeCompiler {
+            context: vec![],
+            types: TypeTable { types: vec![] },
+            globals: Default::default(),
+            top_level_functions: FunctionTable { functions: vec![] },
+        };
+
+        let compiled_ctx = compiler.compile_program(program);
+
+        for fun in &(*compiled_ctx).borrow().functions.functions {
+            println!("{}", fun.borrow());
         }
         return;
     }
@@ -168,8 +186,22 @@ fn main() {
 
         let program = parser.parse();
 
-        for st in program {
+        for st in &program {
             println!("{}", st);
+        }
+        let mut compiler = NextToByteCodeCompiler {
+            context: vec![],
+            types: TypeTable { types: vec![] },
+            globals: Default::default(),
+            top_level_functions: FunctionTable { functions: vec![] },
+        };
+
+        let compiled_ctx = compiler.compile_program(program);
+
+        println!("Imports: {:?}", (*compiled_ctx).borrow().imports.imports);
+
+        for fun in &(*compiled_ctx).borrow().functions.functions {
+            println!("{}", fun.borrow());
         }
     }
 }
