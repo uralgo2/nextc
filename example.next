@@ -1,10 +1,11 @@
-import std
+import std.io
 
-@entry
+fn add(a: int, b: int) {
+    return a + b
+}
+fn sub(a: int, b: int) {
+    return a + b
+}
 fn main {
-    const add = (x, y) => x + y
-    const power = (x, y) => x ** y
     std.println("Hello World!")
 }
-
-export main

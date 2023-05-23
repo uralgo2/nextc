@@ -12,9 +12,16 @@ use std::rc::Rc;
 #[derivative(Debug)]
 pub struct Context {
     pub locals: HashMap<String, Rc<RefCell<Type>>>,
+
+    #[derivative(Debug = "ignore")]
     pub functions: FunctionTable,
+
+    #[derivative(Debug = "ignore")]
     pub types: TypeTable,
+
+    #[derivative(Debug = "ignore")]
     pub parent: Option<Rc<RefCell<Context>>>,
+
     pub imports: ImportTable,
     pub exports: ExportTable,
     pub uses: UsesTable,

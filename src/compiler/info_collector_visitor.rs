@@ -2,6 +2,7 @@ use crate::compiler::context::Context;
 use crate::compiler::exports::ExportTable;
 use crate::compiler::functions::{Function, FunctionParam, FunctionTable};
 use crate::compiler::imports::ImportTable;
+use crate::compiler::next_to_bytecode_compiler::{importModule, NextToByteCodeCompiler};
 use crate::compiler::types::{Type, TypeTable};
 use crate::compiler::uses::UsesTable;
 use crate::compiler::visitor::Visitor;
@@ -12,11 +13,15 @@ use std::rc::Rc;
 
 pub struct InfoCollectorVisitor {
     context: Vec<Rc<RefCell<Context>>>,
+    compiler: Rc<RefCell<NextToByteCodeCompiler>>,
 }
 
 impl InfoCollectorVisitor {
-    pub fn new() -> Self {
-        InfoCollectorVisitor { context: vec![] }
+    pub fn new(compiler: Rc<RefCell<NextToByteCodeCompiler>>) -> Self {
+        InfoCollectorVisitor {
+            context: vec![],
+            compiler: Rc::clone(&compiler),
+        }
     }
 
     pub fn push_ctx(&mut self, ctx: Rc<RefCell<Context>>) {
@@ -201,10 +206,8 @@ impl Visitor<()> for InfoCollectorVisitor {
 
         ctx.borrow_mut()
             .imports
-            .add(import_name)
+            .add(importModule(Rc::clone(&self.compiler), import_name))
             .expect("Name already imported");
-
-        ()
     }
 
     fn visit_use_statement(&mut self, statement: Statement) -> () {

@@ -1,0 +1,7 @@
+import std.sys
+import example
+
+fn println(){}
+fn print(){}
+fn readln(){}
+fn readch(){}

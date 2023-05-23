@@ -1,16 +1,11 @@
-#[derive(PartialEq)]
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct TokenData {
     pub line: u32,
     pub char: u32,
     pub file: String,
-    pub raw: String
-
+    pub raw: String,
 }
-#[derive(PartialEq)]
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Token {
     Keyword(String, TokenData),
     Id(String, TokenData),
