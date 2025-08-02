@@ -1,14 +1,16 @@
 # Язык программирования Next
 ## HelloWorld на Next
 ```
+module example
 import std.io
 
-[EntryPoint]
-public fn main {
+[entry]
+fn main {
   const userName = std.io.readln("Enter your name:")
 
   std.io.println("Hello, %!" % userName)
 }
+
 ```
 ## Features
 ### Трансляция в C
